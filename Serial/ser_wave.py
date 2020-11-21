@@ -1,9 +1,11 @@
 """
 Serial Concurrent Wave Equation - Python Version
 """
+import os
 import numpy as np
 from numpy import pi
-import os
+import matplotlib.pyplot as plt
+from time import perf_counter as pc
 
 MAXP=10000
 MAXSTEPS=10000
@@ -25,12 +27,11 @@ def init_param():
 	while(True):
 		x=input("Inserisci il numero di punti dell'onda [%d-%d]--->" %(MINP,MAXP))
 		tp=int(x)
-		if ((tp<MINP) or (tp>MAXP)):
+		if ((tp < MINP) or (tp > MAXP)):
 			print("Errore ! Inserire valori compresi tra %d e %d " %(MINP,MAXP))
 		else:
 			break
 			os.system("clear")
-
 
 	while(True):
 		y=input("Inserisci il numero di time steps [1-%d]--->" %(MAXSTEPS))
@@ -80,32 +81,45 @@ def update():
 			old_values[j]=values[j]
 			values[j]=new_values[j]
 
+
+"""
+Funzione che stampa i valori
+"""
 def print_values():
 	global values,tp
 	for i in range(1,tp+1):
 		print("%6.4f " %(values[i]), end=" ")
-		if(i % 10 ==0):
+		if(i % 10 == 0):
 			print("\n")
 
+"""
+Funzione che salva i risultati in in un file txt e
+esegue il plot dell'onda.
+"""
 def save_result():
-	global values
+	global values,tp
+	result=np.zeros(tp)
+	result=values[1:tp+1]
 	path="res/wawe.txt"
-	np.savetxt(path,values)
+	plt.plot(result)
+	plt.show()
+	np.savetxt(path,result)
 
 def main():
 	print("Inizio versione seriale dell'equazione d'onda...\n")
 	init_param()
 	print("Inizializzazione dei punti sull'onda...\n")
+	start_time = pc()
 	create_line()
 	print("Aggiornamento di tutti i valori per ogni istante di tempo...\n")
 	update()
+	end_time=pc()-start_time
 	print("Stampa dei risultati finali...\n")
 	print_values()
 	save_result()
-	print("Fine !")
+	print("Eseguito in {} s ".format(end_time))
 	exit(0)
 
 
 if __name__ == "__main__":
     main()
-
