@@ -29,8 +29,9 @@ def init_param():
 			if ((tp < MINP) or (tp > MAXP)):
 				print("Errore ! Inserire valori compresi tra %d e %d " %(MINP,MAXP))
 			else:
-				break
 				os.system("clear")
+				break
+
 		else:
 			print("Errore ! Inserire un numero intero")
 
@@ -41,8 +42,9 @@ def init_param():
 			if ((ns < 1) or (ns > MAXSTEPS)):
 				print("Errore ! Inserire valori compresi tra 1 e %d " %(MAXSTEPS))
 			else:
-				break
 				os.system("clear")
+				break
+
 		else:
 			print("Errore ! Inserire un numero intero")
 
