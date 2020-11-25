@@ -5,7 +5,9 @@ import os
 import numpy as np
 from numpy import pi
 import matplotlib.pyplot as plt
+from celluloid import Camera
 from time import perf_counter as pc
+
 
 MAXP=10000
 MAXSTEPS=10000
@@ -13,15 +15,21 @@ MINP=20
 values=np.zeros(MAXP+2) #valori al tempo t
 old_values=np.zeros(MAXP+2) #valori al tempo (t-dt)
 new_values=np.zeros(MAXP+2) # valori al tempo (t+dt)
+plot_values=np.zeros((80,100))
+plot_values=[]
 tp=0
 ns=0
+t=0
+path_txt="res/txt/"
+path_gif="res/gif/"
+
 
 """
 Funzione che permette l'inserimento del numero di punti dell'onda
 e il numero di time steps.
 """
 def init_param():
-	global tp,ns
+	global tp,ns,ta,t
 	while(True):
 		x=input("Inserisci il numero di punti dell'onda [%d-%d]--->" %(MINP,MAXP))
 		if(x.isdigit()==True):
@@ -47,8 +55,11 @@ def init_param():
 
 		else:
 			print("Errore ! Inserire un numero intero")
-
-	print("Numero di punti scelti: %d , numero di steps: %d" %(tp,ns))
+	if(ns<1000):
+		t=10
+	else:
+		t=100
+	print("Numero di punti scelti: %d , numero di steps: %d \n" %(tp,ns))
 
 
 """
@@ -70,7 +81,7 @@ def create_line():
 Aggiorna tutti i valori lungo la linea per un numero di volte specificato
 """
 def update():
-	global ns,tp,values,old_values,new_values
+	global ns,tp,values,old_values,new_values,t,plot_values
 	dt=0.3
 	c=1
 	dx=1
@@ -88,6 +99,15 @@ def update():
 			old_values[j]=values[j]
 			values[j]=new_values[j]
 
+		if(i==1):
+			plot_values.append(list(values[1:tp+1]))
+		if((i % t)==0):
+			plot_values.append(list(values[1:tp+1]))
+
+	if((ns % t) !=0):
+		plot_values.append(list(values[1:tp+1]))
+
+
 
 """
 Funzione che stampa i valori
@@ -104,37 +124,59 @@ Funzione che salva i risultati in in un file txt e
 esegue il plot dell'onda.
 """
 def save_result():
-	global values,tp
+	global values,tp,ns,plot_values,path_txt
 	result=np.zeros(tp)
 	result=values[1:tp+1]
-	path="res/wawe.txt"
-	np.savetxt(path,result)
+	path_txt=path_txt+"wawe_"+str(tp)+"_"+str(ns)+".txt"
+	np.savetxt(path_txt,result)
 
 def plot_wave():
 	global values,tp,ns
-	time=np.arange(1,tp+1,1)
+	position=np.arange(1,tp+1,1)
 	amplitude=values[1:tp+1]
 	plt.title("Wave")
 	plt.xlabel("Position")
 	plt.ylabel("Amplitude")
 	plt.grid(True, which='both')
 	plt.axhline(y=0, color='k')
-	plt.plot(time,amplitude)
+	plt.plot(position,amplitude)
 	plt.show()
 
 
+def plot_animate_wave():
+	global tp,ns,plot_values,path_gif
+	path_gif=path_gif+"wawe_"+str(tp)+"_"+str(ns)+".gif"
+	position=np.arange(1,tp+1,1)
+	fig = plt.figure()
+	plt.title("Wave, tpoints=%d, nsteps=%d" %(tp,ns))
+	plt.xlabel("Position")
+	plt.ylabel("Amplitude")
+	plt.grid(True, which='both')
+	plt.axhline(y=0, color='k')
+	camera = Camera(fig)
+	for amplitude in plot_values:
+		plt.plot(position,amplitude)
+		camera.snap()
+	animation = camera.animate()
+	plt.show()
+	animation.save(path_gif,writer = 'imagemagick')
+
+
+
 def main():
-	print("Inizio versione seriale dell'equazione d'onda...\n")
+	print("Inserimento dei parametri....")
 	init_param()
-	print("Inizializzazione dei punti sull'onda...\n")
+	print("Inizio.....\n")
+	print("Inizializzazione dei punti sull'onda....\n")
 	start_time = pc()
 	create_line()
-	print("Aggiornamento di tutti i valori per ogni istante di tempo...\n")
+	print("Aggiornamento di tutti i valori per ogni istante di tempo....\n")
 	update()
 	end_time=pc()-start_time
-	print("Stampa dei risultati finali...\n")
+	print("Stampa dei risultati finali....\n")
 	print_values()
 	plot_wave()
+	plot_animate_wave()
 	save_result()
 	print("Eseguito in {} s ".format(end_time))
 	exit(0)
