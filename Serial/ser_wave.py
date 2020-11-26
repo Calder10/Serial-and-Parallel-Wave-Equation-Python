@@ -29,7 +29,10 @@ ns=0
 t=0
 path_txt="res/txt/"
 path_gif="res/gif/"
+<<<<<<< HEAD
 path_img="res/img/"
+=======
+>>>>>>> 46155395fd432d4634fa672ac69b699c58a9568f
 
 
 """
@@ -119,6 +122,15 @@ def update():
 		plot_values.append(list(values[1:tp+1]))
 
 
+		if(i==1):
+			plot_values.append(list(values[1:tp+1]))
+		if((i % t)==0):
+			plot_values.append(list(values[1:tp+1]))
+
+	if((ns % t) !=0):
+		plot_values.append(list(values[1:tp+1]))
+
+
 
 """
 This function prints the final values of the wave's amplitude
@@ -138,6 +150,7 @@ def save_result():
 	result=np.zeros(tp)
 	result=values[1:tp+1]
 	path_txt=path_txt+"wawe_"+str(tp)+"_"+str(ns)+".txt"
+<<<<<<< HEAD
 	#np.savetxt(path_txt,result)
 
 """
@@ -146,6 +159,12 @@ This function plots the initial and the final wave.
 def plot_initial_final_wave():
 	global values,tp,ns,plot_values,path_img
 	path_img=path_img+"wawe_"+str(tp)+"_"+str(ns)+".png"
+=======
+	np.savetxt(path_txt,result)
+
+def plot_wave():
+	global values,tp,ns
+>>>>>>> 46155395fd432d4634fa672ac69b699c58a9568f
 	position=np.arange(1,tp+1,1)
 	amplitude=values[1:tp+1]
 	fig,axs=plt.subplots(2)
@@ -184,19 +203,46 @@ def plot_animate_wave():
 	plt.ylabel("Amplitude")
 	plt.grid(True, which='both')
 	plt.axhline(y=0, color='k')
+<<<<<<< HEAD
 	camera = Camera(fig)
 	for amplitude in plot_values:
 		plt.plot(position,amplitude,linewidth=2)
 		camera.snap()
 	animation = camera.animate()
 	plt.tight_layout()
+=======
+	plt.plot(position,amplitude)
+>>>>>>> 46155395fd432d4634fa672ac69b699c58a9568f
 	plt.show()
 	#animation.save(path_gif,writer = 'imagemagick')
 
 
+<<<<<<< HEAD
 """
 Main routine.
 """
+=======
+def plot_animate_wave():
+	global tp,ns,plot_values,path_gif
+	path_gif=path_gif+"wawe_"+str(tp)+"_"+str(ns)+".gif"
+	position=np.arange(1,tp+1,1)
+	fig = plt.figure()
+	plt.title("Wave, tpoints=%d, nsteps=%d" %(tp,ns))
+	plt.xlabel("Position")
+	plt.ylabel("Amplitude")
+	plt.grid(True, which='both')
+	plt.axhline(y=0, color='k')
+	camera = Camera(fig)
+	for amplitude in plot_values:
+		plt.plot(position,amplitude)
+		camera.snap()
+	animation = camera.animate()
+	plt.show()
+	animation.save(path_gif,writer = 'imagemagick')
+
+
+
+>>>>>>> 46155395fd432d4634fa672ac69b699c58a9568f
 def main():
 	print("Inserimento dei parametri....")
 	init_param()
@@ -209,7 +255,11 @@ def main():
 	end_time=pc()-start_time
 	print("Stampa dei risultati finali....\n")
 	print_values()
+<<<<<<< HEAD
 	plot_initial_final_wave()
+=======
+	plot_wave()
+>>>>>>> 46155395fd432d4634fa672ac69b699c58a9568f
 	plot_animate_wave()
 	save_result()
 	print("Eseguito in {} s ".format(end_time))
