@@ -1,11 +1,20 @@
 """
+Università degli Studi Di Palermo
+Corso di Laurea Magistrale in Informatica
+Anno Accademico 2020/2021
+Cloud e High Performance Computing
+@author Salvatore Calderaro
 Serial Concurrent Wave Equation - Python Version
 """
+
 import os
+from tqdm import tqdm
 import numpy as np
 from numpy import pi
 import matplotlib.pyplot as plt
+from celluloid import Camera
 from time import perf_counter as pc
+
 
 MAXP=10000
 MAXSTEPS=10000
@@ -13,15 +22,22 @@ MINP=20
 values=np.zeros(MAXP+2) #valori al tempo t
 old_values=np.zeros(MAXP+2) #valori al tempo (t-dt)
 new_values=np.zeros(MAXP+2) # valori al tempo (t+dt)
+plot_values=np.zeros((80,100))
+plot_values=[]
 tp=0
 ns=0
+t=0
+path_txt="res/txt/"
+path_gif="res/gif/"
+path_img="res/img/"
+
 
 """
-Funzione che permette l'inserimento del numero di punti dell'onda
-e il numero di time steps.
+This function allows the user to set the number of the points (tp)
+and the number of the time steps (ns).
 """
 def init_param():
-	global tp,ns
+	global tp,ns,ta,t
 	while(True):
 		x=input("Inserisci il numero di punti dell'onda [%d-%d]--->" %(MINP,MAXP))
 		if(x.isdigit()==True):
@@ -47,15 +63,19 @@ def init_param():
 
 		else:
 			print("Errore ! Inserire un numero intero")
-
-	print("Numero di punti scelti: %d , numero di steps: %d" %(tp,ns))
+	if(ns<1000):
+		t=10
+	else:
+		t=100
+	print("Numero di punti scelti: %d , numero di steps: %d \n" %(tp,ns))
 
 
 """
-Calcolo dei valori iniziali basati su una sinusoide
+This function inizializes points on line calculating the initial
+values based on sine curve.
 """
 def create_line():
-	global tp,values
+	global tp,values,plot_values
 	f=2 * pi
 	k=0.0
 	tmp = tp-1
@@ -64,19 +84,20 @@ def create_line():
 		values[i]=np.sin(f * x)
 		old_values[i]=values[i]
 		k=k+1
+	plot_values.append(list(values[1:tp+1]))
 
 
 """
-Aggiorna tutti i valori lungo la linea per un numero di volte specificato
+This fuction update all values along line a specified number of times (ns)
 """
 def update():
-	global ns,tp,values,old_values,new_values
+	global ns,tp,values,old_values,new_values,t,plot_values
 	dt=0.3
 	c=1
 	dx=1
 	tau=(c*dt/dx)
 	sqtau=tau*tau
-	for i in range(1, ns+1):
+	for i in tqdm(range(1, ns+1)):
 		for j in range(1,tp+1):
 			if (j==1 or j==tp):
 				new_values[j]=0
@@ -87,10 +108,20 @@ def update():
 		for j in range(1,tp+1):
 			old_values[j]=values[j]
 			values[j]=new_values[j]
+		"""
+		if(i==1):
+			plot_values.append(list(values[1:tp+1]))
+		"""
+		if((i % t)==0):
+			plot_values.append(list(values[1:tp+1]))
+
+	if((ns % t) !=0):
+		plot_values.append(list(values[1:tp+1]))
+
 
 
 """
-Funzione che stampa i valori
+This function prints the final values of the wave's amplitude
 """
 def print_values():
 	global values,tp
@@ -100,46 +131,89 @@ def print_values():
 			print("\n")
 
 """
-Funzione che salva i risultati in in un file txt e
-esegue il plot dell'onda.
+This function saves the final result in a txt file.
 """
 def save_result():
-	global values,tp
+	global values,tp,ns,plot_values,path_txt
 	result=np.zeros(tp)
 	result=values[1:tp+1]
-	path="res/wawe.txt"
-	np.savetxt(path,result)
+	path_txt=path_txt+"wawe_"+str(tp)+"_"+str(ns)+".txt"
+	#np.savetxt(path_txt,result)
 
-def plot_wave():
-	global values,tp,ns
-	time=np.arange(1,tp+1,1)
+"""
+This function plots the initial and the final wave.
+"""
+def plot_initial_final_wave():
+	global values,tp,ns,plot_values,path_img
+	path_img=path_img+"wawe_"+str(tp)+"_"+str(ns)+".png"
+	position=np.arange(1,tp+1,1)
 	amplitude=values[1:tp+1]
-	plt.title("Wave")
+	fig,axs=plt.subplots(2)
+	#fig,axs=plt.subplots(2,figsize=(19.2,10.8), dpi=100)
+	fig.suptitle("Wave, tpoints=%d, nsteps=%d: initial and final wave" %(tp,ns))
+	axs[0].set_title("Initial wave")
+	axs[0].set_xlabel("Position")
+	axs[0].set_xlim(1,tp)
+	axs[0].set_ylabel("Amplitude")
+	axs[0].grid(True, which='both')
+	axs[0].axhline(y=0, color='k')
+	axs[0].plot(position,plot_values[0],linewidth=2)
+
+	axs[1].set_title("Final wave")
+	axs[1].set_xlabel("Position")
+	axs[1].set_xlim(1,tp)
+	axs[1].set_ylabel("Amplitude")
+	axs[1].grid(True, which='both')
+	axs[1].axhline(y=0, color='k')
+	axs[1].plot(position,plot_values[-1],linewidth=2)
+	plt.tight_layout()
+	plt.show()
+	#fig.savefig(path_img)
+
+"""
+"""
+def plot_animate_wave():
+	global tp,ns,plot_values,path_gif
+	path_gif=path_gif+"wawe_"+str(tp)+"_"+str(ns)+".gif"
+	position=np.arange(1,tp+1,1)
+	fig=plt.figure()
+	#fig = plt.figure(figsize=(19.2,10.8), dpi=100)
+	plt.title("Wave, tpoints=%d, nsteps=%d" %(tp,ns))
 	plt.xlabel("Position")
+	plt.xlim(1,tp)
 	plt.ylabel("Amplitude")
 	plt.grid(True, which='both')
 	plt.axhline(y=0, color='k')
-	plt.plot(time,amplitude)
+	camera = Camera(fig)
+	for amplitude in plot_values:
+		plt.plot(position,amplitude,linewidth=2)
+		camera.snap()
+	animation = camera.animate()
+	plt.tight_layout()
 	plt.show()
+	#animation.save(path_gif,writer = 'imagemagick')
 
 
+"""
+Main routine.
+"""
 def main():
-	print("Inizio versione seriale dell'equazione d'onda...\n")
+	print("Inserimento dei parametri....")
 	init_param()
-	print("Inizializzazione dei punti sull'onda...\n")
+	print("Inizio.....\n")
+	print("Inizializzazione dei punti sull'onda....\n")
 	start_time = pc()
 	create_line()
-	print("Aggiornamento di tutti i valori per ogni istante di tempo...\n")
+	print("Aggiornamento di tutti i valori per ogni istante di tempo....\n")
 	update()
 	end_time=pc()-start_time
-	print("Stampa dei risultati finali...\n")
+	print("Stampa dei risultati finali....\n")
 	print_values()
-	plot_wave()
+	plot_initial_final_wave()
+	plot_animate_wave()
 	save_result()
 	print("Eseguito in {} s ".format(end_time))
 	exit(0)
 
-
 if __name__ == "__main__":
     main()
-
