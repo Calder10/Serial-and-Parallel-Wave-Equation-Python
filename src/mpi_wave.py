@@ -8,12 +8,9 @@ MPI Concurrent Wave Equation - Python Version
 """
 
 import os
-from tqdm import tqdm
 import numpy as np
 from numpy import pi
 from mpi4py import MPI
-import matplotlib.pyplot as plt
-from celluloid import Camera
 from time import perf_counter as pc
 
 comm = MPI.COMM_WORLD
@@ -37,7 +34,6 @@ values=np.zeros(MAXP+2) #valori al tempo t
 old_values=np.zeros(MAXP+2) #valori al tempo (t-dt)
 new_values=np.zeros(MAXP+2) # valori al tempo (t+dt)
 path_txt="res/txt/par/"
-
 
 """
 This function allows the user to set the number of the points (tp)
@@ -113,7 +109,7 @@ def init_line():
 			k=k+npts
 
 """
-All processes update their points a specified number of times 
+All processes update their points a specified number of times
 """
 def update(left,right):
 	global ns,values,old_values,new_values,first,nsteps,comm,npoints,RtoL,LtoR
@@ -137,6 +133,7 @@ def update(left,right):
 			else:
 				new_values[j] = (2.0 * values[j]) - old_values[j] + (sqtau * (values[j-1]
 				- (2.0 * values[j]) + values[j+1]))
+		
 		for j in range(1,npoints+1):
 			old_values[j]=values[j]
 			values[j]=new_values[j]
@@ -163,15 +160,7 @@ def output_master():
 	i=first
 	for i in range(int(first+npoints)):
 		result[i-1]=values[i]
-
-	print("Stampa dei risultati finali....")
-	for i in range(0,tp):
-		print("%6.4f " %(result[i]), end=" ")
-		if((i+1) % 10 == 0):
-			print("\n")
-
-	path_txt=path_txt+"wawe_"+str(tp)+"_"+str(ns)+"_par"+".txt"
-	np.savetxt(path_txt,result)
+	return result
 
 
 """
@@ -186,11 +175,22 @@ def output_workers():
 	data=values[1:npoints+1]
 	comm.send(data,dest=master,tag=OUT2)
 
+def save_print_result(result):
+	global tp,ns,path_txt,path_time_file
+	print("Stampa dei risultati finali....")
+	for i in range(0,tp):
+		print("%6.4f " %(result[i]), end=" ")
+		if((i+1) % 10 == 0):
+				print("\n")
+
+	path_txt=path_txt+"wawe_"+str(tp)+"_"+str(ns)+"_par"+".txt"
+	np.savetxt(path_txt,result)
+
 """
 Main routine
 """
 def main():
-	global comm,taskid,numtasks,master,comm
+	global comm,taskid,numtasks,master,comm,tp
 	left=0
 	right=0
 	if(numtasks<2):
@@ -210,7 +210,7 @@ def main():
 
 	if(taskid==master):
 		init_master()
-		print("Inizio, numtasks=%d" %(numtasks))
+		print("Inizio, numtasks=%d \n" %(numtasks))
 		print("Numero di punti scelti: %d , numero di steps: %d \n" %(tp,ns))
 	else:
 		init_workers()
@@ -219,12 +219,13 @@ def main():
 	init_line()
 	update(left,right)
 	if(taskid==master):
-		output_master()
+		result=output_master()
+		end_time=pc()-start_time
+		save_print_result(result)
+		print("Eseguito in {} s ".format(end_time))
+		exit(0)
 	else:
 		output_workers()
-	end_time=pc()-start_time
-	print("Eseguito in {} s ".format(end_time))
-	exit(0)
 
 
 if __name__ == '__main__':
