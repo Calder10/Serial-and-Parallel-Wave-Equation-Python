@@ -37,7 +37,7 @@ This function allows the user to set the number of the points (tp)
 and the number of the time steps (ns).
 """
 def init_param():
-	global tp,ns,ta,t
+	global tp,ns,t
 	while(True):
 		x=input("Inserisci il numero di punti dell'onda [%d-%d]--->" %(MINP,MAXP))
 		if(x.isdigit()==True):

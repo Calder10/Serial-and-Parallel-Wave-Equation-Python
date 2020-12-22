@@ -23,10 +23,10 @@ first=0
 MAXP=10000
 MAXSTEPS=10000
 MINP=10
-RtoL = 10;
-LtoR = 20;
-OUT1 = 30;
-OUT2 = 40;
+RtoL = 10
+LtoR = 20
+OUT1 = 30
+OUT2 = 40
 
 tp=0
 ns=0
@@ -40,7 +40,7 @@ This function allows the user to set the number of the points (tp)
 and the number of the time steps (ns) and broadcasts the data to workers.
 """
 def init_master():
-	global tp,ns,ta,t,comm
+	global tp,ns,comm
 	while(True):
 		x=input("Inserisci il numero di punti dell'onda [%d-%d]--->" %(MINP,MAXP))
 		if(x.isdigit()==True):
@@ -176,7 +176,7 @@ def output_workers():
 	comm.send(data,dest=master,tag=OUT2)
 
 def save_print_result(result):
-	global tp,ns,path_txt,path_time_file
+	global tp,ns,path_txt
 	print("Stampa dei risultati finali....")
 	for i in range(0,tp):
 		print("%6.4f " %(result[i]), end=" ")
