@@ -76,6 +76,25 @@ def init_workers():
 	global comm,tp,ns
 	tp=comm.bcast(tp, root=0)
 	ns=comm.bcast(ns, root=0)
+ 
+"""
+This fuction identifies and returns left and right neighbors
+"""
+def identify_left_right_processors():
+    global taskid,numtasks
+    left=0
+    right=0
+    if(taskid == numtasks-1):
+        right=0
+    else:
+        right=taskid+1
+        
+    if(taskid==0):
+        left=numtasks-1
+    else:
+        left=taskid-1
+        
+    return (left,right)
 
 """
 This function inizializes points on line calculating the initial
@@ -96,8 +115,7 @@ def init_line():
 		if(taskid==i):
 			first=k+1
 			npoints=npts
-			print ("Task=%d \t  Primo punto=%d \t  numero di punti=%d\n" %(taskid,
-                 first, npts))
+			print ("Task=%d \t  Primo punto=%d \t  numero di punti=%d\n" %(taskid,first, npts))
 			tmp=tp-1
 			for j in range(1,npts+1):
 				x=k/tmp
@@ -111,13 +129,22 @@ def init_line():
 """
 All processes update their points a specified number of times
 """
-def update(left,right):
-	global ns,values,old_values,new_values,first,nsteps,comm,npoints,RtoL,LtoR
+def update():
+	global ns,values,old_values,new_values,first,nsteps,comm,npoints,RtoL,LtoR,taskid
+
+	left,right=identify_left_right_processors()
 	dtime = 0.3
 	c = 1.0
 	dx = 1.0
 	tau = (c * dtime / dx)
 	sqtau = tau * tau
+	"""
+	print("-----------------------------------")
+	print("Aggiornamento valori\n")
+ 	print(left,right,taskid)
+	print ("Task=%d \t  Primo punto=%d \t  numero di punti=%d\n" %(taskid,first, npoints))
+	print("-----------------------------------")
+	"""
 	for i in range(1,ns+1):
 		if(first!=1):
 			comm.send(values[1],dest=left,tag=RtoL)
@@ -127,7 +154,7 @@ def update(left,right):
 			comm.send(values[npoints],dest=right,tag=LtoR)
 			values[npoints+1]=comm.recv(source=right,tag=RtoL)
 
-		for j in range(npoints+1):
+		for j in range(1,npoints+1):
 			if((first+j-1 == 1) or (first+j-1==tp)):
 				new_values[j]=0
 			else:
@@ -153,8 +180,10 @@ def output_master():
 		start=int(buffer[0])
 		npts=int(buffer[1])
 		data=comm.recv(source=i,tag=OUT2)
-		#print(buffer)
-		#print(data)
+		"""
+		print(buffer)
+		print(data)
+		"""
 		result[start-1:start+npts-1]=data
 
 	i=first
@@ -191,23 +220,11 @@ Main routine
 """
 def main():
 	global comm,taskid,numtasks,master,comm,tp
-	left=0
-	right=0
 	if(numtasks<2):
 		print("Errore il numero di task MPI è %d" %(numtasks))
 		print("Inserire almeno due task !")
 		exit(0)
-	if(taskid == numtasks-1):
-		right=0
-
-	else:
-		right=taskid+1
-
-	if(taskid == 0):
-		left = numtasks - 1
-	else:
-		left = taskid - 1
-
+  
 	if(taskid==master):
 		init_master()
 		print("Inizio, numtasks=%d \n" %(numtasks))
@@ -217,7 +234,7 @@ def main():
 
 	start_time=pc()
 	init_line()
-	update(left,right)
+	update()
 	if(taskid==master):
 		result=output_master()
 		end_time=pc()-start_time
@@ -226,7 +243,6 @@ def main():
 		exit(0)
 	else:
 		output_workers()
-
 
 if __name__ == '__main__':
 	main()

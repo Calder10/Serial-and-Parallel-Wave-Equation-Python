@@ -112,7 +112,7 @@ def update():
 	"""
 		if((i % t)==0):
 			plot_values.append(list(values[1:tp+1]))
-	
+
 	if((ns % t) !=0):
 		plot_values.append(list(values[1:tp+1]))
 	"""
@@ -167,7 +167,7 @@ def plot_initial_final_wave():
 	fig.savefig(path_img)
 
 """
-This function shows the
+This function shows the oscillation of the wave during the ns steps.
 """
 def plot_animate_wave():
 	global tp,ns,plot_values,path_gif
@@ -188,7 +188,6 @@ def plot_animate_wave():
 	plt.tight_layout()
 	plt.show()
 	animation.save(path_gif,writer = 'imagemagick')
-
 
 """
 Main routine.
