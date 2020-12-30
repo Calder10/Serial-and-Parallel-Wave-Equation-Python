@@ -1,4 +1,4 @@
-# Serial-and-Parallel-Concurrent-Wave-Equation - Python
+# Serial-and-Parallel-Wave-Equation - Python
 Università degli Studi Di Palermo\
 Corso di Laurea Magistrale in Informatica\
 Anno Accademico 2020/2021\
