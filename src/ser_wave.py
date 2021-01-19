@@ -144,7 +144,6 @@ def plot_initial_final_wave():
 	global values,tp,ns,plot_values,path_img
 	path_img=path_img+"wawe_"+str(tp)+"_"+str(ns)+".png"
 	position=np.arange(1,tp+1,1)
-	amplitude=values[1:tp+1]
 	fig,axs=plt.subplots(2)
 	fig.suptitle("Wave, tpoints=%d, nsteps=%d: initial and final wave" %(tp,ns))
 	axs[0].set_title("Initial wave")
@@ -204,9 +203,9 @@ def main():
 	end_time=pc()-start_time
 	print("Stampa dei risultati finali....\n")
 	print_values()
-	#plot_initial_final_wave()
-	#plot_animate_wave()
-	#save_result()
+	plot_initial_final_wave()
+	plot_animate_wave()
+	save_result()
 	print("Eseguito in {} s ".format(end_time))
 	exit(0)
 

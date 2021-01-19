@@ -138,13 +138,15 @@ def update():
 	dx = 1.0
 	tau = (c * dtime / dx)
 	sqtau = tau * tau
+	
 	"""
 	print("-----------------------------------")
 	print("Aggiornamento valori\n")
- 	print(left,right,taskid)
+	print(left,right,taskid)
 	print ("Task=%d \t  Primo punto=%d \t  numero di punti=%d\n" %(taskid,first, npoints))
 	print("-----------------------------------")
 	"""
+		
 	for i in range(1,ns+1):
 		if(first!=1):
 			comm.send(values[1],dest=left,tag=RtoL)
@@ -223,6 +225,7 @@ def main():
 	if(numtasks<2):
 		print("Errore il numero di task MPI è %d" %(numtasks))
 		print("Inserire almeno due task !")
+		comm.abort(0)
 		exit(0)
   
 	if(taskid==master):
